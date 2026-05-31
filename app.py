@@ -1294,6 +1294,20 @@ def main():
     </style>
     """, unsafe_allow_html=True)
 
+    # ── SESSION STATE INITIALIZATION ──
+    if "folder_path" not in st.session_state:
+        st.session_state.folder_path = ""
+    if "thang_nam" not in st.session_state:
+        st.session_state.thang_nam = f"Tháng {datetime.now().month:02d}/{datetime.now().year}"
+    if "df_phan_loai" not in st.session_state:
+        st.session_state.df_phan_loai = None
+    if "phan_loai_file_name" not in st.session_state:
+        st.session_state.phan_loai_file_name = ""
+    if "df_result" not in st.session_state:
+        st.session_state.df_result = None
+    if "navigation_menu" not in st.session_state:
+        st.session_state.navigation_menu = "📖 Hướng dẫn"
+
     # Header
     st.markdown("""
     <div class="main-header">
@@ -1302,52 +1316,34 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    # ── SIDEBAR ──
+    # ── SIDEBAR MENU ──
     with st.sidebar:
-        st.markdown("### ⚙️ Cài đặt")
+        st.markdown("### ⚡ MENU CHỨC NĂNG")
         st.markdown("---")
-
-        thang_nam = st.text_input(
-            "📅 Tháng/Năm báo cáo",
-            value=f"Tháng {datetime.now().month:02d}/{datetime.now().year}",
-            help="Ví dụ: Tháng 02/2026"
+        
+        menu = st.radio(
+            "Chọn chức năng:",
+            options=[
+                "📖 Hướng dẫn",
+                "⚙️ Nhập dữ liệu & Cài đặt",
+                "📂 Dữ liệu nguồn",
+                "📊 Kết quả tổng hợp"
+            ],
+            key="navigation_menu",
+            label_visibility="collapsed"
         )
-
-        st.markdown("---")
-        st.markdown("### 📁 Thư mục dữ liệu")
-
-        folder_path = st.text_input(
-            "Đường dẫn thư mục",
-            value="",
-            placeholder=r"z:\...\T2",
-            help="Thư mục chứa các file INV-017A, INV-011A, GL-BU-006A, ..."
-        )
-
-        st.markdown("---")
-        st.markdown("### 📋 File phân loại")
-        phan_loai_file = st.file_uploader(
-            "Upload file phan_loai.xlsx",
-            type=["xlsx"],
-            help="File phân loại hồ sơ (Gia hạn/Quyết toán/Đã quyết toán)"
-        )
-
-        st.markdown("---")
-        process_btn = st.button("▶  XỬ LÝ DỮ LIỆU", use_container_width=True)
-
+        
         st.markdown("---")
         st.markdown("""
-        <div style='font-size: 0.78rem; opacity: 0.8; text-align: center;'>
-        💡 Đặt tất cả file xlsx<br>vào cùng 1 thư mục<br>rồi nhập đường dẫn bên trên
+        <div style='font-size: 0.78rem; opacity: 0.8; text-align: center; color: #111111 !important;'>
+        💡 Bố cục mới: Nhập liệu ở bên phải, Menu dọc ở bên trái.<br>Bấm các mục để chuyển đổi.
         </div>
         """, unsafe_allow_html=True)
 
-    # ── MAIN AREA ──
-    tab_huong_dan, tab_du_lieu, tab_ket_qua = st.tabs([
-        "📖 Hướng dẫn", "📂 Dữ liệu nguồn", "📊 Kết quả tổng hợp"
-    ])
+    # ── MAIN AREA ROUTER ──
 
-    # ── Tab Hướng dẫn ──
-    with tab_huong_dan:
+    # ── Tab 1: Hướng dẫn ──
+    if menu == "📖 Hướng dẫn":
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("""
@@ -1387,8 +1383,8 @@ def main():
             <div class='stat-card'>
             <div class='label'>Bước 3</div>
             <div style='margin-top:0.5rem; font-size:0.95rem;'>
-            ⚙️ Nhập đường dẫn thư mục và upload file phân loại,
-            rồi bấm <b>XỬ LÝ DỮ LIỆU</b>
+            ⚙️ Chọn tab <b>⚙️ Nhập dữ liệu & Cài đặt</b> ở bên trái,
+            nhập thời gian, thư mục và upload file phân loại, rồi bấm <b>BẮT ĐẦU XỬ LÝ DỮ LIỆU</b>.
             </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1398,8 +1394,7 @@ def main():
             <div class='stat-card'>
             <div class='label'>Bước 4</div>
             <div style='margin-top:0.5rem; font-size:0.95rem;'>
-            📥 Xem kết quả tại tab <b>Kết quả tổng hợp</b>,
-            tải xuống file Excel đã format sẵn
+            📊 Hệ thống tự động xử lý và chuyển sang tab <b>📊 Kết quả tổng hợp</b> để xem báo cáo và tải file Excel về.
             </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1412,12 +1407,14 @@ def main():
         ])
         st.dataframe(df_acc, use_container_width=True, hide_index=True)
 
-    # ── Tab Dữ liệu nguồn ──
-    with tab_du_lieu:
+    # ── Tab 2: Dữ liệu nguồn ──
+    elif menu == "📂 Dữ liệu nguồn":
+        st.markdown("### 📂 Dữ liệu nguồn & Kiểm tra thư mục")
+        st.markdown("---")
+        
         # Tải file phan_loai mẫu
         st.markdown("#### 📥 Tải file phân loại mẫu (tháng 2/2026)")
 
-        # Load dữ liệu mẫu từ ho_so_list nếu có
         SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
         SAMPLE_DATA_PATH = os.path.join(SCRIPT_DIR, "phan_loai_mau.json")
 
@@ -1436,10 +1433,11 @@ def main():
         st.markdown("---")
         st.markdown("#### 🔍 Kiểm tra thư mục dữ liệu")
 
+        folder_path = st.session_state.folder_path
         if folder_path and os.path.isdir(folder_path):
             files = [f for f in os.listdir(folder_path) if f.lower().endswith(".xlsx")]
             if files:
-                st.success(f"✅ Tìm thấy {len(files)} file Excel")
+                st.success(f"✅ Tìm thấy {len(files)} file Excel trong: {folder_path}")
                 for fname in files:
                     ftype = detect_file_type(fname)
                     badge = ftype or "?"
@@ -1448,7 +1446,7 @@ def main():
                     st.markdown(f"""
                     <div class='file-item'>
                         <span class='file-type-badge' style='background:{color};'>{badge}</span>
-                        <span style='flex:1; font-size:0.9rem;'>{fname}</span>
+                        <span style='flex:1; font-size:0.9rem; color:#111111 !important;'>{fname}</span>
                         <span style='color:#7F7F7F; font-size:0.8rem;'>{size_kb:,} KB</span>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1457,86 +1455,142 @@ def main():
         elif folder_path:
             st.error(f"❌ Không tìm thấy thư mục: {folder_path}")
         else:
-            st.info("👈 Nhập đường dẫn thư mục ở sidebar để kiểm tra")
+            st.info("👈 Hãy nhập đường dẫn thư mục trong tab **⚙️ Nhập dữ liệu & Cài đặt** để kiểm tra dữ liệu nguồn ở đây")
 
-    # ── Tab Kết quả ──
-    with tab_ket_qua:
-        if not process_btn:
-            st.info("👈 Điền thông tin ở sidebar rồi bấm **XỬ LÝ DỮ LIỆU** để bắt đầu")
-            return
+    # ── Tab 3: Cài đặt & Nhập liệu ──
+    elif menu == "⚙️ Nhập dữ liệu & Cài đặt":
+        st.markdown("### ⚙️ Cài đặt cấu hình & Upload dữ liệu")
+        st.markdown("---")
+        
+        col_left, col_right = st.columns(2)
+        with col_left:
+            st.markdown("#### 📅 1. Cài đặt thời gian & Thư mục")
+            st.session_state.thang_nam = st.text_input(
+                "📅 Tháng/Năm báo cáo",
+                value=st.session_state.thang_nam,
+                help="Ví dụ: Tháng 02/2026"
+            )
+            
+            st.session_state.folder_path = st.text_input(
+                "📁 Đường dẫn thư mục dữ liệu gốc",
+                value=st.session_state.folder_path,
+                placeholder=r"z:\Cty ĐL VungTau\1. TCKT_PCVT\4. Công nghệ AI\KeToan(SCTX)\T2",
+                help="Nhập đường dẫn đầy đủ đến thư mục chứa các file Excel thô"
+            )
+            
+        with col_right:
+            st.markdown("#### 📋 2. Upload file phân loại")
+            phan_loai_file = st.file_uploader(
+                "Upload file phan_loai.xlsx",
+                type=["xlsx"],
+                help="Upload file excel phân loại hồ sơ (Gia hạn / Quyết toán / Đã quyết toán)"
+            )
+            
+            if phan_loai_file is not None:
+                try:
+                    df_p = pd.read_excel(phan_loai_file, sheet_name="phan_loai", dtype=str)
+                    st.session_state.df_phan_loai = df_p.fillna("")
+                    st.session_state.phan_loai_file_name = phan_loai_file.name
+                    st.success(f"✅ Đã tải file phân loại: **{phan_loai_file.name}** ({len(df_p)} dòng)")
+                except Exception as e:
+                    st.error(f"❌ Lỗi đọc file phân loại: {e}")
+            elif st.session_state.phan_loai_file_name:
+                st.info(f"✅ Đang sử dụng file phân loại đã tải: **{st.session_state.phan_loai_file_name}**")
+                
+        st.markdown("<br>", unsafe_allow_html=True)
+        process_btn = st.button("▶   BẮT ĐẦU XỬ LÝ DỮ LIỆU", use_container_width=True, type="primary")
 
-        # Validate inputs
-        errors = []
-        if not folder_path:
-            errors.append("❌ Chưa nhập đường dẫn thư mục dữ liệu")
-        elif not os.path.isdir(folder_path):
-            errors.append(f"❌ Thư mục không tồn tại: {folder_path}")
-        if phan_loai_file is None:
-            errors.append("❌ Chưa upload file phân loại")
+        if process_btn:
+            errors = []
+            if not st.session_state.folder_path:
+                errors.append("❌ Chưa nhập đường dẫn thư mục dữ liệu")
+            elif not os.path.isdir(st.session_state.folder_path):
+                errors.append(f"❌ Thư mục không tồn tại: {st.session_state.folder_path}")
+            if st.session_state.df_phan_loai is None:
+                errors.append("❌ Chưa upload file phân loại")
 
-        if errors:
-            for e in errors:
-                st.error(e)
-            return
-
-        # Đọc file phân loại
-        with st.spinner("📋 Đang đọc file phân loại..."):
-            try:
-                df_phan_loai = pd.read_excel(phan_loai_file, sheet_name="phan_loai", dtype=str)
-                df_phan_loai = df_phan_loai.fillna("")
-                st.success(f"✅ Đọc file phân loại: {len(df_phan_loai)} hồ sơ")
-            except Exception as e:
-                st.error(f"❌ Lỗi đọc file phân loại: {e}")
+            if errors:
+                for e in errors:
+                    st.error(e)
                 return
 
-        # Quét thư mục
-        files_in_folder = [f for f in os.listdir(folder_path) if f.lower().endswith(".xlsx")]
+            folder_path = st.session_state.folder_path
+            df_phan_loai = st.session_state.df_phan_loai
 
-        df_17a = pd.DataFrame()
-        df_bu6a = pd.DataFrame()
-        df_11a = pd.DataFrame()
-        df_39 = pd.DataFrame()
+            # Quét thư mục
+            files_in_folder = [f for f in os.listdir(folder_path) if f.lower().endswith(".xlsx")]
 
-        progress = st.progress(0)
-        status = st.empty()
-        total = len(files_in_folder)
+            df_17a = pd.DataFrame()
+            df_bu6a = pd.DataFrame()
+            df_11a = pd.DataFrame()
+            df_39 = pd.DataFrame()
 
-        for i, fname in enumerate(files_in_folder):
-            fpath = os.path.join(folder_path, fname)
-            ftype = detect_file_type(fname)
-            status.text(f"🔄 Đang xử lý: {fname} ...")
+            progress = st.progress(0)
+            status = st.empty()
+            total = len(files_in_folder)
 
-            if ftype == "17A":
-                with st.spinner(f"Đang đọc {fname}..."):
-                    df_17a = process_17A(fpath)
-                    st.success(f"✅ 17A: {len(df_17a)} dòng dữ liệu")
-            elif ftype == "BU6A":
-                with st.spinner(f"Đang đọc {fname}..."):
-                    df_bu6a = process_BU6A(fpath)
-                    st.success(f"✅ BU6A: {len(df_bu6a)} dòng dữ liệu")
-            elif ftype == "11A":
-                with st.spinner(f"Đang đọc {fname}..."):
-                    df_11a = process_11A(fpath)
-                    st.success(f"✅ 11A: {len(df_11a)} dòng dữ liệu")
-            elif ftype == "39":
-                with st.spinner(f"Đang đọc {fname}..."):
-                    df_39 = process_39(fpath)
-                    st.success(f"✅ 39: {len(df_39)} dòng dữ liệu")
+            for i, fname in enumerate(files_in_folder):
+                fpath = os.path.join(folder_path, fname)
+                ftype = detect_file_type(fname)
+                status.text(f"🔄 Đang xử lý: {fname} ...")
 
-            progress.progress((i + 1) / total)
+                if ftype == "17A":
+                    with st.spinner(f"Đang đọc {fname}..."):
+                        df_17a = process_17A(fpath)
+                        st.success(f"✅ 17A: {len(df_17a)} dòng dữ liệu")
+                elif ftype == "BU6A":
+                    with st.spinner(f"Đang đọc {fname}..."):
+                        df_bu6a = process_BU6A(fpath)
+                        st.success(f"✅ BU6A: {len(df_bu6a)} dòng dữ liệu")
+                elif ftype == "11A":
+                    with st.spinner(f"Đang đọc {fname}..."):
+                        df_11a = process_11A(fpath)
+                        st.success(f"✅ 11A: {len(df_11a)} dòng dữ liệu")
+                elif ftype == "39":
+                    with st.spinner(f"Đang đọc {fname}..."):
+                        df_39 = process_39(fpath)
+                        st.success(f"✅ 39: {len(df_39)} dòng dữ liệu")
 
-        status.empty()
-        progress.empty()
+                progress.progress((i + 1) / total)
 
-        if df_17a.empty:
-            st.warning("⚠️ Không tìm thấy file INV-017A hoặc file trống")
+            status.empty()
+            progress.empty()
 
-        # Build tonghop
-        with st.spinner("⚙️ Đang tổng hợp dữ liệu..."):
-            df_result = build_tonghop(df_phan_loai, df_17a, df_bu6a, df_39)
+            if df_17a.empty:
+                st.warning("⚠️ Không tìm thấy file INV-017A hoặc file trống")
 
-        if df_result.empty:
-            st.error("❌ Không có dữ liệu để tổng hợp. Kiểm tra lại file phân loại và thư mục dữ liệu.")
+            # Build tonghop
+            with st.spinner("⚙️ Đang tổng hợp dữ liệu..."):
+                df_result = build_tonghop(df_phan_loai, df_17a, df_bu6a, df_39)
+
+            if df_result.empty:
+                st.error("❌ Không có dữ liệu để tổng hợp. Kiểm tra lại file phân loại và thư mục dữ liệu.")
+                return
+
+            st.session_state.df_result = df_result
+            st.success("🎉 Xử lý và tổng hợp dữ liệu thành công!")
+            
+            # Show success card with transition button
+            st.markdown("""
+            <div style='background: linear-gradient(135deg, #E8F5E9, #C8E6C9); border-left: 5px solid #2E7D32; border-radius: 12px; padding: 1.5rem; margin-top: 1rem;'>
+                <h4 style='color: #1B5E20 !important; margin: 0 0 0.5rem 0;'>🎉 Hoàn thành tổng hợp dữ liệu!</h4>
+                <p style='color: #2E7D32 !important; margin: 0 0 1rem 0; font-size: 0.95rem;'>
+                    Hồ sơ của tháng đã được tổng hợp thành công từ các file nguồn. Anh hãy bấm nút bên dưới để chuyển sang màn hình xem báo cáo và tải file Excel nhé!
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            if st.button("➡️ XEM KẾT QUẢ TỔNG HỢP", use_container_width=True):
+                st.session_state.navigation_menu = "📊 Kết quả tổng hợp"
+                st.rerun()
+
+    # ── Tab 4: Kết quả tổng hợp ──
+    elif menu == "📊 Kết quả tổng hợp":
+        df_result = st.session_state.df_result
+        thang_nam = st.session_state.thang_nam
+
+        if df_result is None or df_result.empty:
+            st.info("⚠️ Chưa có kết quả tổng hợp. Vui lòng chọn tab **⚙️ Nhập dữ liệu & Cài đặt** ở menu bên trái, điền thông tin và bấm **BẮT ĐẦU XỬ LÝ DỮ LIỆU** trước nhé anh!")
             return
 
         # Thống kê tổng quan
@@ -1596,9 +1650,6 @@ def main():
             df_result["User"].isin(filter_user) &
             df_result["Loại CP"].isin(filter_loai)
         ].copy()
-
-        # Format số cho hiển thị
-        num_cols = [c for c in df_display.columns if df_display[c].dtype in ['float64', 'int64']]
 
         st.dataframe(
             df_display.style.format({
