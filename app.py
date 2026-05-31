@@ -1167,9 +1167,43 @@ def main():
         color: #111111 !important;
     }
     
-    /* Make file uploader inner elements solid black so they are visible on white container */
-    section[data-testid="stSidebar"] [data-testid="stFileUploader"] * {
+    /* Make file uploader always have a clear, high-contrast light background */
+    [data-testid="stFileUploader"] {
+        background-color: #ffffff !important;
+        border: 1px solid #d0dbe5 !important;
+        border-radius: 10px !important;
+        padding: 8px !important;
+    }
+    
+    [data-testid="stFileUploaderDropzone"] {
+        background-color: #f8f9fa !important;
+        border: 2px dashed #b0c4de !important;
+        border-radius: 8px !important;
+    }
+
+    /* Force all text inside uploader to be dark black for absolute contrast */
+    [data-testid="stFileUploader"] * {
         color: #111111 !important;
+    }
+
+    /* Style the Browse files button to look premium and clear */
+    [data-testid="stFileUploader"] button {
+        background: linear-gradient(135deg, #1F4E79, #2E75B6) !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        padding: 0.4rem 1rem !important;
+        box-shadow: 0 2px 6px rgba(31, 78, 121, 0.2) !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    [data-testid="stFileUploader"] button:hover {
+        background: linear-gradient(135deg, #2E75B6, #3498DB) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    [data-testid="stFileUploader"] button * {
+        color: #ffffff !important;
     }
 
     /* Sidebar Action button */
